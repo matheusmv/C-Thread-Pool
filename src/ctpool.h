@@ -6,9 +6,6 @@
 
 #include "task_queue.h"
 
-#define true  1
-#define false 0
-
 typedef enum thread_pool_error {
         thread_pool_invalid        = -1,
         thread_pool_lock_failure   = -2,
@@ -18,13 +15,15 @@ typedef enum thread_pool_error {
 } thread_pool_error_t;
 
 typedef enum thread_pool_destroy_flags {
-        thread_pool_graceful = 1
+        thread_pool_immediate_shutdown = 0,
+        thread_pool_graceful_shutdown  = 1
 } thread_pool_destroy_flags_t;
 
 /* structure of a thread pool */
 typedef struct thread_pool thread_pool_t;
 struct thread_pool {
         int8_t          shutdown;      /* Is the current state of the thread pool closed? */
+        int32_t         task_count;    /* Number of tasks currently to be run             */
         int32_t         started;       /* Number of threads running                       */
         int32_t         thread_count;  /* Number of threads                               */
         pthread_t       *threads;      /* Starting Pointer of Thread Array                */

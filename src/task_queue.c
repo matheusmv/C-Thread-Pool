@@ -154,8 +154,9 @@ task_queue_dequeue(task_queue_t *queue, thread_pool_task_t *dest)
                         memmove(dest, head, sizeof(thread_pool_task_t));
                 }
 
-                decrease_queue_length(queue);
                 free(head);
+
+                decrease_queue_length(queue);
 
                 task_queue_mutex_unlock(queue);
 

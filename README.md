@@ -12,4 +12,4 @@ thread pool in C
 ## References
 
  - [Thread Pool in C](https://nachtimwald.com/2019/04/12/thread-pool-in-c/)
- - [C - Simple Thread Pool Based on pthread Implementation](https://nachtimwald.com/2019/04/12/thread-pool-in-c/)
+ - [C - Simple Thread Pool Based on pthread Implementation](https://programmer.group/c-simple-thread-pool-based-on-pthread-implementation.html)
