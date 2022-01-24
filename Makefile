@@ -4,7 +4,7 @@ CFLAGS := -pedantic-errors -Wall -Werror -Wextra -std=c11
 
 DIRS := src/
 
-SRCS := $(shell find $(CLIENTSRCDIRS) -name *.c)
+SRCS := $(shell find $(DIRS) -name *.c)
 
 LFLAGS := -lpthread
 
