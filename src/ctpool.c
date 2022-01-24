@@ -7,10 +7,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-typedef enum thread_pool_shutdown {
+enum thread_pool_shutdown {
         immediate_shutdown = 1,
         graceful_shutdown  = 2
-} thread_pool_shutdown_t;
+};
 
 static int
 thread_pool_mutex_init(thread_pool_t *pool)
@@ -170,18 +170,18 @@ thread_pool_create(int32_t thread_count)
                 .threads      = new_threads,
         };
 
-        for (int i = 0; i < thread_count; ++i) {
+        for (int32_t i = 0; i < thread_count; ++i) {
                 status = pthread_create(&new_pool->threads[i], NULL,
                                         thread_pool_thread, (void *) new_pool);
 
-                if (status != 0) {
-                        thread_pool_destroy(new_pool, 0);
-
-                        return NULL;
-                }
-
                 new_pool->thread_count += 1;
                 new_pool->started += 1;
+        }
+
+        if (status != 0) {
+                thread_pool_destroy(new_pool, thread_pool_immediate_shutdown);
+
+                return NULL;
         }
 
         return new_pool;
@@ -190,44 +190,48 @@ thread_pool_create(int32_t thread_count)
 int
 thread_pool_add(thread_pool_t *pool, thread_pool_task_t *task)
 {
-        if (pool == NULL || task == NULL) {
+        if (pool == NULL) {
                 return thread_pool_invalid;
         }
 
-        int status = 0;
+        if (task == NULL) {
+                return thread_pool_task_invalid;
+        }
 
-        status = thread_pool_mutex_lock(pool);
-        if (status != 0) {
+        int error = 0;
+
+        error = thread_pool_mutex_lock(pool);
+        if (error != 0) {
                 return thread_pool_lock_failure;
         }
 
         do {
                 if (pool->shutdown) {
-                        status = thread_pool_shutdown;
+                        error = thread_pool_shutdown;
                         break;
                 }
 
-                status = task_queue_enqueue(pool->queue, task);
-                if (status != 0) {
-                        status = thread_pool_queue_error;
+                error = task_queue_enqueue(pool->queue, task);
+                if (error != 0) {
+                        error = thread_pool_queue_error;
                         break;
                 }
 
                 pool->task_count += 1;
 
-                status = thread_pool_cond_signal(pool);
-                if (status != 0) {
-                        status = thread_pool_lock_failure;
+                error = thread_pool_cond_signal(pool);
+                if (error != 0) {
+                        error = thread_pool_lock_failure;
                         break;
                 }
         } while (0);
 
-        status = thread_pool_mutex_unlock(pool);
-        if (status != 0) {
+        error = thread_pool_mutex_unlock(pool);
+        if (error != 0) {
                 return thread_pool_lock_failure;
         }
 
-        return status;
+        return error;
 }
 
 static int

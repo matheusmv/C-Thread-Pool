@@ -6,57 +6,61 @@
 #include "ctpool.h"
 #include "clogger.h"
 
+/* arg for 'thread_show_thread_pool_info' */
+typedef struct tp_id {
+        char          *name;
+        thread_pool_t *pool;
+} tp_id_t;
+
 void *thread_log_fn(void *filepath);
-void *thread_msg_start_stdout(void *message);
 void *thread_show_thread_pool_info(void *pool);
-void *thread_msg_finish_stdout(void *message);
 
 int main(void)
 {
-        thread_pool_t *pool = thread_pool_create(5);
-        if (pool == NULL) {
-                return EXIT_FAILURE;
-        }
+        thread_pool_t *pool1 = thread_pool_create(5);
 
-        const char *filepath = "logs.txt";
-        thread_pool_task_t log_in_logs_txt = thread_pool_task_create(
-                thread_log_fn,
-                (void *) filepath
-        );
+        /* creating the tasks */
 
-        const char *message_start = "***       started      ***";
-        thread_pool_task_t message_start_to_stdout = thread_pool_task_create(
-                thread_msg_start_stdout,
-                (void *) message_start
-        );
-
+        tp_id_t id_pool1 = {  .name = "pool1", .pool = pool1 };
         thread_pool_task_t show_thread_pool_info = thread_pool_task_create(
                 thread_show_thread_pool_info,
-                (void *) pool
+                (void *) &id_pool1
         );
 
-        const char *message_finish = "*** the queue is empty ***";
-        thread_pool_task_t message_finish_to_stdout = thread_pool_task_create(
-                thread_msg_finish_stdout,
-                (void *) message_finish
+        char *filepath1 = "logs1.txt";
+        thread_pool_task_t log_in_logs1_txt = thread_pool_task_create(
+                thread_log_fn,
+                (void *) filepath1
         );
 
-        thread_pool_add(pool, &message_start_to_stdout);
-        thread_pool_add(pool, &show_thread_pool_info);
-        thread_pool_add(pool, &log_in_logs_txt);
-        thread_pool_add(pool, &log_in_logs_txt);
-        thread_pool_add(pool, &log_in_logs_txt);
-        thread_pool_add(pool, &log_in_logs_txt);
-        thread_pool_add(pool, &log_in_logs_txt);
-        thread_pool_add(pool, &log_in_logs_txt);
-        thread_pool_add(pool, &log_in_logs_txt);
-        thread_pool_add(pool, &log_in_logs_txt);
-        thread_pool_add(pool, &log_in_logs_txt);
-        thread_pool_add(pool, &log_in_logs_txt);
-        thread_pool_add(pool, &message_finish_to_stdout);
+        char *filepath2 = "logs2.txt";
+        thread_pool_task_t log_in_logs2_txt = thread_pool_task_create(
+                thread_log_fn,
+                (void *) filepath2
+        );
 
-        thread_pool_destroy(pool, thread_pool_graceful_shutdown);
-        // thread_pool_destroy(pool, thread_pool_immediate_shutdown);
+        /* adding tasks to thread pool */
+        /* tasks are waiting in the task queue */
+
+        LOG_DEBUG("Thread %s starting", id_pool1.name);
+
+        thread_pool_add(pool1, &show_thread_pool_info);
+        thread_pool_add(pool1, &log_in_logs1_txt);
+        thread_pool_add(pool1, &log_in_logs2_txt);
+        thread_pool_add(pool1, &log_in_logs1_txt);
+        thread_pool_add(pool1, &log_in_logs2_txt);
+        thread_pool_add(pool1, &log_in_logs1_txt);
+        thread_pool_add(pool1, &log_in_logs2_txt);
+        thread_pool_add(pool1, &log_in_logs1_txt);
+        thread_pool_add(pool1, &log_in_logs2_txt);
+        thread_pool_add(pool1, &log_in_logs1_txt);
+        thread_pool_add(pool1, &log_in_logs2_txt);
+
+        /* try close the pool immediately */
+        // thread_pool_destroy(pool1, thread_pool_immediate_shutdown);
+
+        /* wait for threads to finish tasks */
+        thread_pool_destroy(pool1, thread_pool_graceful_shutdown);
 
         return EXIT_SUCCESS;
 }
@@ -80,49 +84,22 @@ thread_log_fn(void *filepath)
 }
 
 void *
-thread_msg_start_stdout(void *message)
-{
-        const char *msg = message;
-        if (msg == NULL) {
-                LOG_ERROR("message not provided. msg = (%s)", msg);
-                return NULL;
-        }
-
-        printf("message of thread: (%ld) >>> %s\n", pthread_self(), msg);
-
-        return NULL;
-}
-
-void *
 thread_show_thread_pool_info(void *pool)
 {
-        thread_pool_t *tp = pool;
-        if (tp == NULL) {
-                LOG_ERROR("thread pool not provided. (%s)", NULL);
+        tp_id_t *id = pool;
+        if (id == NULL) {
+                LOG_ERROR("id not provided. (%s)", NULL);
                 return NULL;
         }
 
-        while (tp->started > 1) {
-                printf("queue length %ld - working threads: %d\n",
-                       task_queue_length(tp->queue),
-                       tp->started);
+        while (id->pool->started > 1) {
+                printf("POOL: %s INFO >>> queue length %ld - working threads: %d\n",
+                       id->name,
+                       task_queue_length(id->pool->queue),
+                       id->pool->started);
 
                        sleep(3);
         }
-
-        return NULL;
-}
-
-void *
-thread_msg_finish_stdout(void *message)
-{
-        const char *msg = message;
-        if (msg == NULL) {
-                LOG_ERROR("message not provided. msg = (%s)", msg);
-                return NULL;
-        }
-
-        printf("message of thread: (%ld) >>> %s\n", pthread_self(), msg);
 
         return NULL;
 }

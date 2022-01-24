@@ -10,7 +10,7 @@ LFLAGS := -lpthread
 
 BIN := example
 
-FILES := logs.txt
+FILES := logs1.txt logs2.txt
 
 all: CFLAGS +=-O2
 all: release
@@ -19,7 +19,7 @@ debug: CFLAGS +=-O0 -ggdb
 debug: release
 
 release:
-	$(CC) $(CFLAGS) $(SRCS) -o $(BIN) $(LFLAGS)
+	$(CC) $(CFLAGS) $(SRCS) -o $(BIN) $(LFLAGS) -DLCOLOR
 
 clean:
 	$(RM) $(BIN) $(FILES)
