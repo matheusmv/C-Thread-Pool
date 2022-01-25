@@ -18,10 +18,10 @@ task_queue_unlock(task_queue_t *queue)
         pthread_mutex_unlock(&queue->lock);
 }
 
-thread_pool_task_t
-thread_pool_task_create(thread_fn function, void *argument)
+Task_t
+task_create(thread_fn function, void *argument)
 {
-        return (thread_pool_task_t) {
+        return (Task_t) {
                 .function        = function,
                 .argument        = argument,
                 .next            = NULL,
@@ -81,18 +81,18 @@ task_queue_is_empty(task_queue_t *queue)
 }
 
 int
-task_queue_enqueue(task_queue_t *queue, thread_pool_task_t *task)
+task_queue_enqueue(task_queue_t *queue, Task_t *task)
 {
         if (queue == NULL || task == NULL) {
                 return -1;
         }
 
-        thread_pool_task_t *new_task = malloc(sizeof(thread_pool_task_t));
+        Task_t *new_task = malloc(sizeof(Task_t));
         if (new_task == NULL) {
                 return -1;
         }
 
-        *new_task = (thread_pool_task_t) {
+        *new_task = (Task_t) {
                 .function        = task->function,
                 .argument        = task->argument,
                 .next            = NULL,
@@ -118,7 +118,7 @@ task_queue_enqueue(task_queue_t *queue, thread_pool_task_t *task)
 }
 
 int
-task_queue_dequeue(task_queue_t *queue, thread_pool_task_t *dest)
+task_queue_dequeue(task_queue_t *queue, Task_t *dest)
 {
         if (queue == NULL) {
                 return -1;
@@ -127,7 +127,7 @@ task_queue_dequeue(task_queue_t *queue, thread_pool_task_t *dest)
         task_queue_lock(queue);
 
         if(!task_queue_is_empty(queue)) {
-                thread_pool_task_t *head = queue->head;
+                Task_t *head = queue->head;
 
                 if(task_queue_length(queue) == 1) {
                         queue->head = NULL;
@@ -137,7 +137,7 @@ task_queue_dequeue(task_queue_t *queue, thread_pool_task_t *dest)
                 }
 
                 if (dest != NULL && head != NULL) {
-                        memmove(dest, head, sizeof(thread_pool_task_t));
+                        memmove(dest, head, sizeof(Task_t));
                 }
 
                 free(head);
@@ -160,9 +160,9 @@ task_queue_free(task_queue_t *queue)
         if (queue != NULL) {
                 task_queue_lock(queue);
 
-                thread_pool_task_t *head = queue->head;
+                Task_t *head = queue->head;
                 while(head != NULL) {
-                        thread_pool_task_t *task = head;
+                        Task_t *task = head;
                         head = head->next;
                         free(task);
                 }

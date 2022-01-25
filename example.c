@@ -22,22 +22,13 @@ int main(void)
         /* creating the tasks */
 
         tp_id_t id_pool1 = {  .name = "pool1", .pool = pool1 };
-        thread_pool_task_t show_thread_pool_info = thread_pool_task_create(
-                thread_show_thread_pool_info,
-                (void *) &id_pool1
-        );
+        Task_t show_thread_pool_info = task_create(thread_show_thread_pool_info, (void *) &id_pool1);
 
         char *filepath1 = "logs1.txt";
-        thread_pool_task_t log_in_logs1_txt = thread_pool_task_create(
-                thread_log_fn,
-                (void *) filepath1
-        );
+        Task_t log_in_logs1_txt = task_create(thread_log_fn, (void *) filepath1);
 
         char *filepath2 = "logs2.txt";
-        thread_pool_task_t log_in_logs2_txt = thread_pool_task_create(
-                thread_log_fn,
-                (void *) filepath2
-        );
+        Task_t log_in_logs2_txt = task_create(thread_log_fn, (void *) filepath2);
 
         /* adding tasks to thread pool */
         /* tasks are waiting in the task queue */

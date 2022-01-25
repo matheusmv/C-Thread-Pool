@@ -188,7 +188,7 @@ thread_pool_create(int32_t thread_count)
 }
 
 int
-thread_pool_add(thread_pool_t *pool, thread_pool_task_t *task)
+thread_pool_add(thread_pool_t *pool, Task_t *task)
 {
         if (pool == NULL) {
                 return thread_pool_invalid;
@@ -314,7 +314,7 @@ thread_pool_thread(void *thread_pool)
         assert(thread_pool != NULL);
 
         thread_pool_t *pool = thread_pool;
-        thread_pool_task_t task;
+        Task_t task;
 
         for (;;) {
                 thread_pool_mutex_lock(pool);
