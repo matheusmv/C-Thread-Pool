@@ -3,8 +3,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#include "ctpool.h"
-#include "clogger.h"
+#include "../../src/ctpool.h"
+#include "../../src/clogger.h"
 
 /* arg for 'thread_show_thread_pool_info' */
 typedef struct tp_id {
@@ -100,6 +100,8 @@ thread_show_thread_pool_info(void *pool)
 
                        sleep(3);
         }
+
+        LOG_DEBUG("POOL: %s finished", id->name);
 
         return NULL;
 }

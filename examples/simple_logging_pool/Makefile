@@ -2,7 +2,7 @@ CC := gcc
 
 CFLAGS := -pedantic-errors -Wall -Werror -Wextra -std=c11
 
-DIRS := src/ example.c
+DIRS := ../../src/ .
 
 SRCS := $(shell find $(DIRS) -name '*.c')
 
