@@ -28,6 +28,20 @@ task_create(thread_fn function, void *argument)
         };
 }
 
+void *
+task_execute(Task_t *task)
+{
+        if (task == NULL) {
+                return NULL;
+        }
+
+        void *result = NULL;
+
+        result = task->function(task->argument);
+
+        return result;
+}
+
 static void
 increase_queue_length(task_queue_t *queue)
 {

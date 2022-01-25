@@ -24,6 +24,7 @@ struct task_queue {
 };
 
 Task_t task_create(thread_fn function, void *argument);
+void *task_execute(Task_t *task);
 
 task_queue_t *task_queue_create(void);
 int task_queue_enqueue(task_queue_t *queue, Task_t *task);

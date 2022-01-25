@@ -334,7 +334,7 @@ thread_pool_thread(void *thread_pool)
 
                 thread_pool_mutex_unlock(pool);
 
-                (*(task.function))(task.argument);
+                task_execute(&task);
         }
 
         pool->started -= 1;
