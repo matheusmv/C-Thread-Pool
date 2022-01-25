@@ -93,9 +93,9 @@ thread_show_thread_pool_info(void *pool)
         }
 
         while (id->pool->started > 1) {
-                printf("POOL: %s INFO >>> queue length %ld - working threads: %d\n",
+                printf("POOL: %s INFO >>> remaining tasks: %d - working threads: %d\n",
                        id->name,
-                       task_queue_length(id->pool->queue),
+                       id->pool->task_count,
                        id->pool->started);
 
                        sleep(3);

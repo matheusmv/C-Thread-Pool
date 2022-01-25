@@ -85,7 +85,6 @@ thread_log_fn(void *filepath)
         const int counter = 10;
         for (int i = 0; i < counter; i++) {
                 LOG_INFO_F(fp, "%d info message of thread %ld", i, pthread_self());
-                sleep(2);
         }
 
         return NULL;
@@ -101,12 +100,12 @@ thread_show_thread_pool_info(void *pool)
         }
 
         while (id->pool->started > 1) {
-                printf("POOL: %s INFO >>> queue length %ld - working threads: %d\n",
+                printf("POOL: %s INFO >>> remaining tasks: %d - working threads: %d\n",
                        id->name,
-                       task_queue_length(id->pool->queue),
+                       id->pool->task_count,
                        id->pool->started);
 
-                       sleep(3);
+                       sleep(2);
         }
 
         LOG_DEBUG("POOL: %s finished", id->name);
