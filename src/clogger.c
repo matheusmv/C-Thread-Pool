@@ -24,6 +24,19 @@ typedef struct clogger {
 
 static clogger_t prv_logger;
 
+static char *log_type_string_table[][2] = {
+        [INFO]  = {"INFO ", "\x1B[32mINFO\033[0m "},
+        [DEBUG] = {"DEBUG", "\x1B[34mDEBUG\033[0m"},
+        [WARN]  = {"WARN ", "\x1B[33mWARN\033[0m "},
+        [ERROR] = {"ERROR", "\x1B[31mERROR\033[0m"}
+};
+
+static char *
+log_type_to_string(log_type_t type, int8_t colored)
+{
+        return log_type_string_table[type][colored];
+}
+
 static void
 clogger_mutex_init(clogger_t *clogger)
 {
@@ -68,23 +81,6 @@ clogger_log(FILE *stream, const char *time, const char *log_level,
                 function, line, message);
 }
 
-static char *
-log_type_to_string(log_type_t type, int8_t colored)
-{
-        switch (type) {
-        case INFO:
-                return colored ? "\x1B[32mINFO\033[0m " : "INFO ";
-        case DEBUG:
-                return colored ? "\x1B[34mDEBUG\033[0m" : "DEBUG";
-        case WARN:
-                return colored ? "\x1B[33mWARN\033[0m " : "WARN ";
-        case ERROR:
-                return colored ? "\x1B[31mERROR\033[0m" : "ERROR";
-        default:
-                return "UNDEF";
-        }
-}
-
 static void
 clogger_init(void)
 {
@@ -114,8 +110,9 @@ get_time(char *dest, size_t dest_size)
         strftime(dest, dest_size, "%b %d %Y %X", &time_info);
 }
 
-void clogger(log_type_t type, const char *filename, const char *function,
-             int line, const char *format, ...)
+void
+clogger(log_type_t type, const char *filename, const char *function,
+        int line, const char *format, ...)
 {
         if (!prv_logger.initialized) {
                 clogger_init();
@@ -140,8 +137,9 @@ void clogger(log_type_t type, const char *filename, const char *function,
         clogger_mutex_unlock(&prv_logger);
 }
 
-void clogger_f(log_type_t type, const char *filepath, const char *filename,
-               const char *function, int line, const char *format, ...)
+void 
+clogger_f(log_type_t type, const char *filepath, const char *filename,
+          const char *function, int line, const char *format, ...)
 {
         if (!prv_logger.initialized) {
                 clogger_init();
