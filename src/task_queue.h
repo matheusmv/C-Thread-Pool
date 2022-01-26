@@ -2,6 +2,7 @@
 #define TASK_QUEUE_H
 
 #include <stddef.h>
+#include <stdint.h>
 #include <pthread.h>
 
 typedef void *(*thread_fn)(void *);
@@ -27,8 +28,8 @@ Task_t task_create(thread_fn function, void *argument);
 void *task_execute(Task_t *task);
 
 task_queue_t *task_queue_create(void);
-int task_queue_enqueue(task_queue_t *queue, Task_t *task);
-int task_queue_dequeue(task_queue_t *queue, Task_t *task);
+int32_t task_queue_enqueue(task_queue_t *queue, Task_t *task);
+int32_t task_queue_dequeue(task_queue_t *queue, Task_t *task);
 void task_queue_free(task_queue_t *queue);
 
 #endif

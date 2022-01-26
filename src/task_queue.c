@@ -83,13 +83,13 @@ task_queue_length(task_queue_t *queue)
         return queue->length;
 }
 
-static inline int
+static inline int32_t
 task_queue_is_empty(task_queue_t *queue)
 {
         return queue->tail == NULL;
 }
 
-int
+int32_t
 task_queue_enqueue(task_queue_t *queue, Task_t *task)
 {
         if (queue == NULL || task == NULL) {
@@ -126,7 +126,7 @@ task_queue_enqueue(task_queue_t *queue, Task_t *task)
         return 0;
 }
 
-int
+int32_t
 task_queue_dequeue(task_queue_t *queue, Task_t *dest)
 {
         if (queue == NULL) {

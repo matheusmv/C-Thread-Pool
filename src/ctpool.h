@@ -31,11 +31,11 @@ struct thread_pool {
         pthread_t        *threads;      /* Starting Pointer of Thread Array                */
         task_queue_t     *queue;        /* Starting Pointer of Task Queue                  */
         pthread_cond_t   notify;        /* Conditional variable                            */
-        pthread_mutex_t  mutex;         /* mutex                                           */
+        pthread_mutex_t  lock;         /* mutex                                           */
 };
 
 thread_pool_t *thread_pool_create(int32_t thread_count);
-int thread_pool_add(thread_pool_t *pool, Task_t *task);
-int thread_pool_destroy(thread_pool_t *pool, int flags);
+int32_t thread_pool_add(thread_pool_t *pool, Task_t *task);
+int32_t thread_pool_destroy(thread_pool_t *pool, int32_t flags);
 
 #endif
