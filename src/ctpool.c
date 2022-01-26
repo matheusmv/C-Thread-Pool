@@ -13,16 +13,6 @@ enum thread_pool_shutdown {
 };
 
 static int
-thread_pool_mutex_init(thread_pool_t *pool)
-{
-        int status = 0;
-
-        status = pthread_mutex_init(&pool->mutex, NULL);
-
-        return status;
-}
-
-static int
 thread_pool_mutex_lock(thread_pool_t *pool)
 {
         int status = 0;
@@ -38,26 +28,6 @@ thread_pool_mutex_unlock(thread_pool_t *pool)
         int status = 0;
 
         status = pthread_mutex_unlock(&pool->mutex);
-
-        return status;
-}
-
-static int
-thread_pool_mutex_destroy(thread_pool_t *pool)
-{
-        int status = 0;
-
-        status = pthread_mutex_destroy(&pool->mutex);
-
-        return status;
-}
-
-static int
-thread_pool_cond_init(thread_pool_t *pool)
-{
-        int status = 0;
-
-        status = pthread_cond_init(&pool->notify, NULL);
 
         return status;
 }
@@ -88,16 +58,6 @@ thread_pool_cond_broadcast(thread_pool_t *pool)
         int status = 0;
 
         status = pthread_cond_broadcast(&pool->notify);
-
-        return status;
-}
-
-static int
-thread_pool_cond_destroy(thread_pool_t *pool)
-{
-        int status = 0;
-
-        status = pthread_cond_destroy(&pool->notify);
 
         return status;
 }
@@ -135,32 +95,6 @@ thread_pool_create(int32_t thread_count)
                 return NULL;
         }
 
-        int status = 0;
-        status = thread_pool_mutex_init(new_pool);
-        if (status != 0) {
-                fprintf(stderr, "ERROR: failed to create thread pool. (%d)\n",
-                        status);
-
-                free(new_pool);
-                free(new_threads);
-                task_queue_free(task_queue);
-
-                return NULL;
-        }
-
-        status = thread_pool_cond_init(new_pool);
-        if (status != 0) {
-                fprintf(stderr, "ERROR: failed to create thread pool. (%d)\n",
-                        status);
-
-                free(new_pool);
-                free(new_threads);
-                task_queue_free(task_queue);
-                thread_pool_mutex_destroy(new_pool);
-
-                return NULL;
-        }
-
         *new_pool = (thread_pool_t) {
                 .shutdown     = 0,
                 .task_count   = 0,
@@ -170,12 +104,38 @@ thread_pool_create(int32_t thread_count)
                 .threads      = new_threads,
         };
 
+        int status = 0;
+        status = pthread_mutex_init(&new_pool->mutex, NULL);
+        if (status != 0) {
+                fprintf(stderr, "ERROR: failed to create thread pool. (%d)\n",
+                        status);
+
+                free(new_pool);
+                free(new_threads);
+                task_queue_free(task_queue);
+
+                return NULL;
+        }
+
+        status = pthread_cond_init(&new_pool->notify, NULL);
+        if (status != 0) {
+                fprintf(stderr, "ERROR: failed to create thread pool. (%d)\n",
+                        status);
+
+                free(new_pool);
+                free(new_threads);
+                task_queue_free(task_queue);
+                pthread_mutex_destroy(&new_pool->mutex);
+
+                return NULL;
+        }
+
         for (int32_t i = 0; i < thread_count; ++i) {
                 status = pthread_create(&new_pool->threads[i], NULL,
                                         thread_pool_thread, (void *) new_pool);
 
-                new_pool->thread_count += 1;
                 new_pool->started += 1;
+                new_pool->thread_count += 1;
         }
 
         if (status != 0) {
@@ -254,8 +214,8 @@ thread_pool_free(thread_pool_t *pool)
                         task_queue_free(pool->queue);
                 }
 
-                thread_pool_mutex_destroy(pool);
-                thread_pool_cond_destroy(pool);
+                pthread_mutex_destroy(&pool->mutex);
+                pthread_cond_destroy(&pool->notify);
         }
 
         free(pool);
