@@ -65,7 +65,7 @@ int main(void)
         //         thread_pool_destroy(pools[i], thread_pool_immediate_shutdown);
         // }
 
-        // /* wait for threads to finish tasks */
+        /* wait for threads to finish tasks */
         for (size_t i = 0; i < ARR_LEN(pools); ++i) {
                 thread_pool_destroy(pools[i], thread_pool_graceful_shutdown);
         }

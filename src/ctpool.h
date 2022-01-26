@@ -7,12 +7,13 @@
 #include "task_queue.h"
 
 typedef enum thread_pool_error {
-        thread_pool_invalid        = -1,
-        thread_pool_task_invalid   = -2,
-        thread_pool_lock_failure   = -3,
-        thread_pool_queue_error    = -4,
-        thread_pool_shutdown       = -5,
-        thread_pool_thread_failure = -6,
+        thread_pool_invalid          = -1,
+        thread_pool_task_invalid     = -2,
+        thread_pool_lock_failure     = -3,
+        thread_pool_queue_error      = -4,
+        thread_pool_shutdown         = -5,
+        thread_pool_thread_failure   = -6,
+        thread_pool_unsafe_operation = -7
 } thread_pool_error_t;
 
 typedef enum thread_pool_destroy_flags {

@@ -22,9 +22,9 @@ Task_t
 task_create(thread_fn function, void *argument)
 {
         return (Task_t) {
-                .function        = function,
-                .argument        = argument,
-                .next            = NULL,
+                .function = function,
+                .argument = argument,
+                .next     = NULL,
         };
 }
 
