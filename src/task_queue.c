@@ -1,6 +1,5 @@
 #include "task_queue.h"
 
-#include <assert.h>
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -78,17 +77,13 @@ task_queue_create(void)
         return queue;
 }
 
-size_t
+static inline size_t
 task_queue_length(task_queue_t *queue)
 {
-        if (queue == NULL) {
-                return 0;
-        }
-
         return queue->length;
 }
 
-int
+static inline int
 task_queue_is_empty(task_queue_t *queue)
 {
         return queue->tail == NULL;
@@ -107,9 +102,9 @@ task_queue_enqueue(task_queue_t *queue, Task_t *task)
         }
 
         *new_task = (Task_t) {
-                .function        = task->function,
-                .argument        = task->argument,
-                .next            = NULL,
+                .function = task->function,
+                .argument = task->argument,
+                .next     = NULL,
         };
 
         task_queue_lock(queue);
@@ -154,11 +149,11 @@ task_queue_dequeue(task_queue_t *queue, Task_t *dest)
                         memmove(dest, head, sizeof(Task_t));
                 }
 
-                free(head);
-
                 decrease_queue_length(queue);
 
                 task_queue_unlock(queue);
+
+                free(head);
 
                 return 0;
         }
