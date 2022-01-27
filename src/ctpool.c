@@ -67,7 +67,9 @@ static void *thread_pool_thread(void *thread_pool);
 thread_pool_t *
 thread_pool_create(int32_t thread_count)
 {
-        assert(thread_count > 0);
+        if (thread_count <= 0) {
+                return NULL;
+        }
 
         thread_pool_t *new_pool = malloc(sizeof(thread_pool_t));
         if (new_pool == NULL) {
@@ -149,7 +151,7 @@ thread_pool_create(int32_t thread_count)
 }
 
 int32_t
-thread_pool_add(thread_pool_t *pool, Task_t *task)
+thread_pool_add(thread_pool_t *pool, task_t *task)
 {
         if (pool == NULL) {
                 return thread_pool_invalid;
@@ -277,7 +279,7 @@ thread_pool_thread(void *thread_pool)
         assert(thread_pool != NULL);
 
         thread_pool_t *pool = thread_pool;
-        Task_t task;
+        task_t task;
 
         for (;;) {
                 thread_pool_mutex_lock(pool);

@@ -24,18 +24,18 @@ typedef enum thread_pool_destroy_flags {
 /* structure of a thread pool */
 typedef struct thread_pool thread_pool_t;
 struct thread_pool {
-        int8_t           shutdown;      /* Is the current state of the thread pool closed? */
-        int32_t          task_count;    /* Number of tasks currently to be run             */
-        int32_t          started;       /* Number of threads running                       */
-        int32_t          thread_count;  /* Number of threads                               */
-        pthread_t        *threads;      /* Starting Pointer of Thread Array                */
-        task_queue_t     *queue;        /* Starting Pointer of Task Queue                  */
-        pthread_cond_t   notify;        /* Conditional variable                            */
-        pthread_mutex_t  lock;         /* mutex                                           */
+        int8_t          shutdown;      /* Is the current state of the thread pool closed? */
+        int32_t         task_count;    /* Number of tasks currently to be run             */
+        int32_t         started;       /* Number of threads running                       */
+        int32_t         thread_count;  /* Number of threads                               */
+        pthread_t       *threads;      /* Starting Pointer of Thread Array                */
+        task_queue_t    *queue;        /* Starting Pointer of Task Queue                  */
+        pthread_cond_t  notify;        /* Conditional variable                            */
+        pthread_mutex_t lock;          /* mutex                                           */
 };
 
 thread_pool_t *thread_pool_create(int32_t thread_count);
-int32_t thread_pool_add(thread_pool_t *pool, Task_t *task);
+int32_t thread_pool_add(thread_pool_t *pool, task_t *task);
 int32_t thread_pool_destroy(thread_pool_t **pool, int32_t flags);
 
 #endif
