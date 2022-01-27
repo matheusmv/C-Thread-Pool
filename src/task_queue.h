@@ -21,7 +21,6 @@ struct task_queue {
         task_t          *head;  /* head of task queue */
         task_t          *tail;  /* tail of task queue */
         size_t          length; /* task queue length  */
-        pthread_mutex_t lock;   /* queue mutex        */
 };
 
 task_t task_create(task_fn function, void *argument);

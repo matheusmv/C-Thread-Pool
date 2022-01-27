@@ -5,18 +5,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-static void
-task_queue_lock(task_queue_t *queue)
-{
-        pthread_mutex_lock(&queue->lock);
-}
-
-static void
-task_queue_unlock(task_queue_t *queue)
-{
-        pthread_mutex_unlock(&queue->lock);
-}
-
 task_t
 task_create(task_fn function, void *argument)
 {
@@ -72,8 +60,6 @@ task_queue_create(void)
                 .length = 0
         };
 
-        pthread_mutex_init(&queue->lock, NULL);
-
         return queue;
 }
 
@@ -107,8 +93,6 @@ task_queue_enqueue(task_queue_t *queue, task_t *task)
                 .next     = NULL,
         };
 
-        task_queue_lock(queue);
-
         if (queue->head == NULL) {
                 queue->head = new_task;
         }
@@ -121,8 +105,6 @@ task_queue_enqueue(task_queue_t *queue, task_t *task)
 
         increase_queue_length(queue);
 
-        task_queue_unlock(queue);
-
         return 0;
 }
 
@@ -132,8 +114,6 @@ task_queue_dequeue(task_queue_t *queue, task_t *dest)
         if (queue == NULL) {
                 return -1;
         }
-
-        task_queue_lock(queue);
 
         if(!task_queue_is_empty(queue)) {
                 task_t *head = queue->head;
@@ -151,14 +131,10 @@ task_queue_dequeue(task_queue_t *queue, task_t *dest)
 
                 decrease_queue_length(queue);
 
-                task_queue_unlock(queue);
-
                 free(head);
 
                 return 0;
         }
-
-        task_queue_unlock(queue);
 
         return -1;
 }
@@ -167,7 +143,6 @@ void
 task_queue_free(task_queue_t **queue)
 {
         if (queue != NULL && *queue != NULL) {
-                task_queue_lock(*queue);
 
                 task_t *head = (*queue)->head;
                 while(head != NULL) {
@@ -178,8 +153,6 @@ task_queue_free(task_queue_t **queue)
 
                 (*queue)->tail = NULL;
                 (*queue)->length = 0;
-
-                pthread_mutex_destroy(&(*queue)->lock);
 
                 free(*queue);
                 *queue = NULL;
