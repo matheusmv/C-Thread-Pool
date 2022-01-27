@@ -164,24 +164,24 @@ task_queue_dequeue(task_queue_t *queue, Task_t *dest)
 }
 
 void
-task_queue_free(task_queue_t *queue)
+task_queue_free(task_queue_t **queue)
 {
-        if (queue != NULL) {
-                task_queue_lock(queue);
+        if (queue != NULL && *queue != NULL) {
+                task_queue_lock(*queue);
 
-                Task_t *head = queue->head;
+                Task_t *head = (*queue)->head;
                 while(head != NULL) {
                         Task_t *task = head;
                         head = head->next;
                         free(task);
                 }
 
-                queue->tail = NULL;
-                queue->length = 0;
+                (*queue)->tail = NULL;
+                (*queue)->length = 0;
 
-                pthread_mutex_destroy(&queue->lock);
+                pthread_mutex_destroy(&(*queue)->lock);
 
-                free(queue);
-                queue = NULL;
+                free(*queue);
+                *queue = NULL;
         }
 }

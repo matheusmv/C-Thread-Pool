@@ -62,13 +62,17 @@ int main(void)
 
         /* try close the pool immediately */
         // for (size_t i = 0; i < ARR_LEN(pools); ++i) {
-        //         thread_pool_destroy(pools[i], thread_pool_immediate_shutdown);
+        //         thread_pool_destroy(&pools[i], thread_pool_immediate_shutdown);
         // }
 
         /* wait for threads to finish tasks */
         for (size_t i = 0; i < ARR_LEN(pools); ++i) {
-                thread_pool_destroy(pools[i], thread_pool_graceful_shutdown);
+                thread_pool_destroy(&pools[i], thread_pool_graceful_shutdown);
         }
+
+        assert(pools[0] == NULL);
+        assert(pools[1] == NULL);
+        assert(pools[2] == NULL);
 
         return EXIT_SUCCESS;
 }
@@ -98,6 +102,8 @@ thread_show_thread_pool_info(void *pool)
                 LOG_ERROR("id not provided. (%s)", NULL);
                 return NULL;
         }
+
+        LOG_DEBUG("POOL: %s starting", id->name);
 
         while (id->pool->started > 1) {
                 printf("POOL: %s INFO >>> remaining tasks: %d - working threads: %d\n",

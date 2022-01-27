@@ -33,8 +33,6 @@ int main(void)
         /* adding tasks to thread pool */
         /* tasks are waiting in the task queue */
 
-        LOG_DEBUG("Thread %s starting", id_pool1.name);
-
         thread_pool_add(pool1, &show_thread_pool_info);
         thread_pool_add(pool1, &log_in_logs1_txt);
         thread_pool_add(pool1, &log_in_logs2_txt);
@@ -48,10 +46,12 @@ int main(void)
         thread_pool_add(pool1, &log_in_logs2_txt);
 
         /* try close the pool immediately */
-        // thread_pool_destroy(pool1, thread_pool_immediate_shutdown);
+        // thread_pool_destroy(&pool1, thread_pool_immediate_shutdown);
 
         /* wait for threads to finish tasks */
-        thread_pool_destroy(pool1, thread_pool_graceful_shutdown);
+        thread_pool_destroy(&pool1, thread_pool_graceful_shutdown);
+
+        assert(pool1 == NULL);
 
         return EXIT_SUCCESS;
 }
@@ -82,6 +82,8 @@ thread_show_thread_pool_info(void *pool)
                 LOG_ERROR("id not provided. (%s)", NULL);
                 return NULL;
         }
+
+        LOG_DEBUG("POOL: %s starting", id->name);
 
         while (id->pool->started > 1) {
                 printf("POOL: %s INFO >>> remaining tasks: %d - working threads: %d\n",

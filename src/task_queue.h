@@ -30,6 +30,6 @@ void *task_execute(Task_t *task);
 task_queue_t *task_queue_create(void);
 int32_t task_queue_enqueue(task_queue_t *queue, Task_t *task);
 int32_t task_queue_dequeue(task_queue_t *queue, Task_t *task);
-void task_queue_free(task_queue_t *queue);
+void task_queue_free(task_queue_t **queue);
 
 #endif

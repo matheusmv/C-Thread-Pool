@@ -57,10 +57,12 @@ int main(void)
         thread_pool_add(pool1, &log_in_logs2_txt);
 
         /* try close the pool immediately */
-        // thread_pool_destroy(pool1, thread_pool_immediate_shutdown);
+        // thread_pool_destroy(&pool1, thread_pool_immediate_shutdown);
 
         /* wait for threads to finish tasks */
-        thread_pool_destroy(pool1, thread_pool_graceful_shutdown);
+        thread_pool_destroy(&pool1, thread_pool_graceful_shutdown);
+
+        assert(pool1 == NULL);
 
         return EXIT_SUCCESS;
 }
