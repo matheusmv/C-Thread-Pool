@@ -35,7 +35,7 @@ struct thread_pool {
 };
 
 thread_pool_t *thread_pool_create(int32_t thread_count);
-int32_t thread_pool_add(thread_pool_t *pool, task_t *task);
+int32_t thread_pool_add(thread_pool_t *pool, task_fn func, void *arg);
 int32_t thread_pool_destroy(thread_pool_t **pool, int32_t flags);
 
 #endif

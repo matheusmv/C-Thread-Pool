@@ -62,7 +62,7 @@ thread_pool_cond_broadcast(thread_pool_t *pool)
         return status;
 }
 
-static void *thread_pool_thread(void *thread_pool);
+static void *thread_pool_worker_fn(void *thread_pool);
 
 thread_pool_t *
 thread_pool_create(int32_t thread_count)
@@ -135,7 +135,8 @@ thread_pool_create(int32_t thread_count)
 
         for (int32_t i = 0; i < thread_count; ++i) {
                 status = pthread_create(&new_pool->threads[i], NULL,
-                                        thread_pool_thread, (void *) new_pool);
+                                        thread_pool_worker_fn,
+                                        (void *) new_pool);
 
                 new_pool->started += 1;
                 new_pool->thread_count += 1;
@@ -151,13 +152,13 @@ thread_pool_create(int32_t thread_count)
 }
 
 int32_t
-thread_pool_add(thread_pool_t *pool, task_t *task)
+thread_pool_add(thread_pool_t *pool, task_fn func, void *arg)
 {
         if (pool == NULL) {
                 return thread_pool_invalid;
         }
 
-        if (task == NULL) {
+        if (func == NULL) {
                 return thread_pool_task_invalid;
         }
 
@@ -173,7 +174,7 @@ thread_pool_add(thread_pool_t *pool, task_t *task)
                         break;
                 }
 
-                if (task_queue_enqueue(pool->queue, task) != 0) {
+                if (task_queue_enqueue(pool->queue, func, arg) != 0) {
                         error = thread_pool_queue_error;
                         break;
                 }
@@ -274,12 +275,12 @@ there_are_no_tasks_to_process(thread_pool_t *pool)
 }
 
 static void *
-thread_pool_thread(void *thread_pool)
+thread_pool_worker_fn(void *thread_pool)
 {
         assert(thread_pool != NULL);
 
         thread_pool_t *pool = thread_pool;
-        task_t task;
+        task_t *task;
 
         for (;;) {
                 thread_pool_mutex_lock(pool);
@@ -292,7 +293,7 @@ thread_pool_thread(void *thread_pool)
                             break;
                 }
 
-                task_queue_dequeue(pool->queue, &task);
+                task = task_queue_dequeue(pool->queue);
                 pool->task_count -= 1;
 
                 thread_pool_mutex_unlock(pool);

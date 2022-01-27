@@ -20,9 +20,9 @@ void *thread_show_thread_pool_info(void *pool);
 
 /* just to keep the main function clean */
 
-void add_tasks_on_pool1(thread_pool_t *pool);
-void add_tasks_on_pool2(thread_pool_t *pool);
-void add_tasks_on_pool3(thread_pool_t *pool);
+void add_tasks_on_pool1(thread_pool_t *pool, tp_id_t *pool_id);
+void add_tasks_on_pool2(thread_pool_t *pool, tp_id_t *pool_id);
+void add_tasks_on_pool3(thread_pool_t *pool, tp_id_t *pool_id);
 
 int main(void)
 {
@@ -34,31 +34,13 @@ int main(void)
 
         // /* creating the tasks */
         tp_id_t id_pool1 = {  .name = "pool1", .pool = pools[0] };
-        task_t show_thread_pool1_info = task_create(
-                thread_show_thread_pool_info,
-                (void *) &id_pool1
-        );
-
-        thread_pool_add(pools[0], &show_thread_pool1_info);
-        add_tasks_on_pool1(pools[0]);
+        add_tasks_on_pool1(pools[0], &id_pool1);
 
         tp_id_t id_pool2 = {  .name = "pool2", .pool = pools[1] };
-        task_t show_thread_pool2_info = task_create(
-                thread_show_thread_pool_info,
-                (void *) &id_pool2
-        );
-
-        thread_pool_add(pools[1], &show_thread_pool2_info);
-        add_tasks_on_pool2(pools[1]);
+        add_tasks_on_pool2(pools[1], &id_pool2);
 
         tp_id_t id_pool3 = {  .name = "pool3", .pool = pools[2] };
-        task_t show_thread_pool3_info = task_create(
-                thread_show_thread_pool_info,
-                (void *) &id_pool3
-        );
-
-        thread_pool_add(pools[2], &show_thread_pool3_info);
-        add_tasks_on_pool3(pools[2]);
+        add_tasks_on_pool3(pools[2], &id_pool3);
 
         /* try close the pool immediately */
         // for (size_t i = 0; i < ARR_LEN(pools); ++i) {
@@ -120,74 +102,41 @@ thread_show_thread_pool_info(void *pool)
 }
 
 void
-add_tasks_on_pool1(thread_pool_t *pool)
+add_tasks_on_pool1(thread_pool_t *pool, tp_id_t *pool_id)
 {
-        char *filepath1 = "logs1.txt";
-        task_t log_in_logs1_txt = task_create(
-                thread_log_fn,
-                (void *) filepath1
-        );
-
-        char *filepath2 = "logs2.txt";
-        task_t log_in_logs2_txt = task_create(
-                thread_log_fn,
-                (void *) filepath2
-        );
-
-        thread_pool_add(pool, &log_in_logs1_txt);
-        thread_pool_add(pool, &log_in_logs2_txt);
+        thread_pool_add(pool, thread_show_thread_pool_info, pool_id);
+        thread_pool_add(pool, thread_log_fn, "logs1.txt");
+        thread_pool_add(pool, thread_log_fn, "logs2.txt");
 }
 
 void
-add_tasks_on_pool2(thread_pool_t *pool)
+add_tasks_on_pool2(thread_pool_t *pool, tp_id_t *pool_id)
 {
-        char *filepath1 = "logs3.txt";
-        task_t log_in_logs3_txt = task_create(
-                thread_log_fn,
-                (void *) filepath1
-        );
-
-        char *filepath2 = "logs4.txt";
-        task_t log_in_logs4_txt = task_create(
-                thread_log_fn,
-                (void *) filepath2
-        );
-
-        thread_pool_add(pool, &log_in_logs3_txt);
-        thread_pool_add(pool, &log_in_logs4_txt);
-        thread_pool_add(pool, &log_in_logs4_txt);
-        thread_pool_add(pool, &log_in_logs3_txt);
-        thread_pool_add(pool, &log_in_logs4_txt);
-        thread_pool_add(pool, &log_in_logs3_txt);
-        thread_pool_add(pool, &log_in_logs4_txt);
-        thread_pool_add(pool, &log_in_logs4_txt);
-        thread_pool_add(pool, &log_in_logs3_txt);
-        thread_pool_add(pool, &log_in_logs4_txt);
-        thread_pool_add(pool, &log_in_logs3_txt);
-        thread_pool_add(pool, &log_in_logs4_txt);
-        thread_pool_add(pool, &log_in_logs4_txt);
-        thread_pool_add(pool, &log_in_logs3_txt);
-        thread_pool_add(pool, &log_in_logs4_txt);
+        thread_pool_add(pool, thread_show_thread_pool_info, pool_id);
+        thread_pool_add(pool, thread_log_fn, "logs3.txt");
+        thread_pool_add(pool, thread_log_fn, "logs4.txt");
+        thread_pool_add(pool, thread_log_fn, "logs4.txt");
+        thread_pool_add(pool, thread_log_fn, "logs3.txt");
+        thread_pool_add(pool, thread_log_fn, "logs4.txt");
+        thread_pool_add(pool, thread_log_fn, "logs3.txt");
+        thread_pool_add(pool, thread_log_fn, "logs4.txt");
+        thread_pool_add(pool, thread_log_fn, "logs4.txt");
+        thread_pool_add(pool, thread_log_fn, "logs3.txt");
+        thread_pool_add(pool, thread_log_fn, "logs4.txt");
+        thread_pool_add(pool, thread_log_fn, "logs3.txt");
+        thread_pool_add(pool, thread_log_fn, "logs4.txt");
+        thread_pool_add(pool, thread_log_fn, "logs4.txt");
+        thread_pool_add(pool, thread_log_fn, "logs3.txt");
+        thread_pool_add(pool, thread_log_fn, "logs4.txt");
 }
 
 void
-add_tasks_on_pool3(thread_pool_t *pool)
+add_tasks_on_pool3(thread_pool_t *pool, tp_id_t *pool_id)
 {
-        char *filepath1 = "logs5.txt";
-        task_t log_in_logs5_txt = task_create(
-                thread_log_fn,
-                (void *) filepath1
-        );
-
-        char *filepath2 = "logs6.txt";
-        task_t log_in_logs6_txt = task_create(
-                thread_log_fn,
-                (void *) filepath2
-        );
-
-        thread_pool_add(pool, &log_in_logs5_txt);
-        thread_pool_add(pool, &log_in_logs6_txt);
-        thread_pool_add(pool, &log_in_logs5_txt);
-        thread_pool_add(pool, &log_in_logs6_txt);
-        thread_pool_add(pool, &log_in_logs6_txt);
+        thread_pool_add(pool, thread_show_thread_pool_info, pool_id);
+        thread_pool_add(pool, thread_log_fn, "logs5.txt");
+        thread_pool_add(pool, thread_log_fn, "logs6.txt");
+        thread_pool_add(pool, thread_log_fn, "logs5.txt");
+        thread_pool_add(pool, thread_log_fn, "logs6.txt");
+        thread_pool_add(pool, thread_log_fn, "logs6.txt");
 }

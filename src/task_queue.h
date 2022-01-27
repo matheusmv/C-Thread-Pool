@@ -23,12 +23,12 @@ struct task_queue {
         size_t          length; /* task queue length  */
 };
 
-task_t task_create(task_fn function, void *argument);
-void *task_execute(task_t *task);
+task_t *task_create(task_fn function, void *argument);
+void *task_execute(task_t **task);
 
 task_queue_t *task_queue_create(void);
-int32_t task_queue_enqueue(task_queue_t *queue, task_t *task);
-int32_t task_queue_dequeue(task_queue_t *queue, task_t *task);
+int32_t task_queue_enqueue(task_queue_t *queue, task_fn func, void *arg);
+task_t *task_queue_dequeue(task_queue_t *queue);
 void task_queue_free(task_queue_t **queue);
 
 #endif

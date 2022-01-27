@@ -5,26 +5,38 @@
 #include <stdlib.h>
 #include <string.h>
 
-task_t
+task_t *
 task_create(task_fn function, void *argument)
 {
-        return (task_t) {
+        task_t *new_task = malloc(sizeof(task_t));
+        if (new_task == NULL) {
+                return NULL;
+        }
+
+        *new_task = (task_t) {
                 .function = function,
                 .argument = argument,
                 .next     = NULL,
         };
+
+        return new_task;
 }
 
 void *
-task_execute(task_t *task)
+task_execute(task_t **task)
 {
-        if (task == NULL) {
+        if (task == NULL || *task == NULL) {
                 return NULL;
         }
 
         void *result = NULL;
+        task_fn func = (*task)->function;
+        void *arg    = (*task)->argument;
 
-        result = task->function(task->argument);
+        result = func(arg);
+
+        free(*task);
+        *task = NULL;
 
         return result;
 }
@@ -76,22 +88,16 @@ task_queue_is_empty(task_queue_t *queue)
 }
 
 int32_t
-task_queue_enqueue(task_queue_t *queue, task_t *task)
+task_queue_enqueue(task_queue_t *queue, task_fn func, void *arg)
 {
-        if (queue == NULL || task == NULL) {
+        if (queue == NULL || func == NULL) {
                 return -1;
         }
 
-        task_t *new_task = malloc(sizeof(task_t));
+        task_t *new_task = task_create(func, arg);
         if (new_task == NULL) {
                 return -1;
         }
-
-        *new_task = (task_t) {
-                .function = task->function,
-                .argument = task->argument,
-                .next     = NULL,
-        };
 
         if (queue->head == NULL) {
                 queue->head = new_task;
@@ -108,11 +114,11 @@ task_queue_enqueue(task_queue_t *queue, task_t *task)
         return 0;
 }
 
-int32_t
-task_queue_dequeue(task_queue_t *queue, task_t *dest)
+task_t *
+task_queue_dequeue(task_queue_t *queue)
 {
         if (queue == NULL) {
-                return -1;
+                return NULL;
         }
 
         if(!task_queue_is_empty(queue)) {
@@ -125,18 +131,12 @@ task_queue_dequeue(task_queue_t *queue, task_t *dest)
                         queue->head = head->next;
                 }
 
-                if (dest != NULL && head != NULL) {
-                        memmove(dest, head, sizeof(task_t));
-                }
-
                 decrease_queue_length(queue);
 
-                free(head);
-
-                return 0;
+                return head;
         }
 
-        return -1;
+        return NULL;
 }
 
 void
