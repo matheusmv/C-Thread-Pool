@@ -286,7 +286,9 @@ thread_pool_worker_fn(void *thread_pool)
                 thread_pool_mutex_lock(pool);
 
                 while ((pool->task_count == 0) && (!pool->shutdown)) {
+                        pool->started -= 1;
                         thread_pool_cond_wait(pool);
+                        pool->started += 1;
                 }
 
                 if (there_are_no_tasks_to_process(pool)) {
