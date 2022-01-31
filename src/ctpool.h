@@ -29,8 +29,8 @@ struct thread_pool {
         int32_t         task_count;    /* Number of tasks currently to be run             */
         int32_t         started;       /* Number of threads running                       */
         int32_t         thread_count;  /* Number of threads                               */
-        ctpool_cond_t   notify;        /* mutex                                           */ 
-        ctpool_mutex_t  lock;          /* Conditional variable                            */ 
+        ctpool_cond_t   notify;        /* Conditional variable                            */ 
+        ctpool_mutex_t  lock;          /* Mutex                                           */ 
         ctpool_thread_t *threads;      /* Starting Pointer of Thread Array                */
         task_queue_t    *queue;        /* Starting Pointer of Task Queue                  */         
 };
