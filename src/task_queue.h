@@ -1,5 +1,5 @@
 #ifndef TASK_QUEUE_H
-#define tASK_QUEUE_H
+#define TASK_QUEUE_H
 
 #include <stddef.h>
 #include <stdint.h>
