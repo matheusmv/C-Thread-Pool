@@ -97,6 +97,8 @@ task_queue_dequeue(task_queue_t *queue)
 
                 decrease_queue_length(queue);
 
+                head->next = NULL;
+
                 return head;
         }
 
