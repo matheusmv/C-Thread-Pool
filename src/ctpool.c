@@ -12,56 +12,6 @@ enum thread_pool_shutdown {
         graceful_shutdown  = 2
 };
 
-static int32_t
-thread_pool_mutex_lock(thread_pool_t *pool)
-{
-        int32_t status = 0;
-
-        status = pthread_mutex_lock(&pool->lock);
-
-        return status;
-}
-
-static int32_t
-thread_pool_mutex_unlock(thread_pool_t *pool)
-{
-        int32_t status = 0;
-
-        status = pthread_mutex_unlock(&pool->lock);
-
-        return status;
-}
-
-static int32_t
-thread_pool_cond_signal(thread_pool_t *pool)
-{
-        int32_t status = 0;
-
-        status = pthread_cond_signal(&pool->notify);
-
-        return status;
-}
-
-static int32_t
-thread_pool_cond_wait(thread_pool_t *pool)
-{
-        int32_t status = 0;
-
-        status = pthread_cond_wait(&pool->notify, &pool->lock);
-
-        return status;
-}
-
-static int32_t
-thread_pool_cond_broadcast(thread_pool_t *pool)
-{
-        int32_t status = 0;
-
-        status = pthread_cond_broadcast(&pool->notify);
-
-        return status;
-}
-
 static void *thread_pool_worker_fn(void *thread_pool);
 
 thread_pool_t *
@@ -106,43 +56,22 @@ thread_pool_create(int32_t thread_count)
                 .threads      = new_threads,
         };
 
-        int32_t status = 0;
+        int32_t error = 0;
 
-        status = pthread_mutex_init(&new_pool->lock, NULL);
-        if (status != 0) {
-                fprintf(stderr, "ERROR: failed to create thread pool. (%d)\n",
-                        status);
+        error = ctpool_mutex_init(&new_pool->lock);
 
-                free(new_pool);
-                free(new_threads);
-                task_queue_free(&task_queue);
+        error = ctpool_cond_init(&new_pool->notify);
 
-                return NULL;
-        }
-
-        status = pthread_cond_init(&new_pool->notify, NULL);
-        if (status != 0) {
-                fprintf(stderr, "ERROR: failed to create thread pool. (%d)\n",
-                        status);
-
-                free(new_pool);
-                free(new_threads);
-                task_queue_free(&task_queue);
-                pthread_mutex_destroy(&new_pool->lock);
-
-                return NULL;
-        }
-
-        for (int32_t i = 0; i < thread_count; ++i) {
-                status = pthread_create(&new_pool->threads[i], NULL,
-                                        thread_pool_worker_fn,
-                                        (void *) new_pool);
+        for (int32_t i = 0; i < thread_count && !error; ++i) {
+                error = ctpool_thread_create(&new_pool->threads[i],
+                                              thread_pool_worker_fn,
+                                              new_pool);
 
                 new_pool->started += 1;
                 new_pool->thread_count += 1;
         }
 
-        if (status != 0) {
+        if (error) {
                 thread_pool_destroy(&new_pool, thread_pool_immediate_shutdown);
 
                 return NULL;
@@ -162,9 +91,7 @@ thread_pool_add(thread_pool_t *pool, task_fn func, void *arg)
                 return thread_pool_task_invalid;
         }
 
-        if (thread_pool_mutex_lock(pool) != 0) {
-                return thread_pool_lock_failure;
-        }
+        ctpool_mutex_lock(&pool->lock);
 
         int32_t error = 0;
 
@@ -181,15 +108,12 @@ thread_pool_add(thread_pool_t *pool, task_fn func, void *arg)
 
                 pool->task_count += 1;
 
-                if (thread_pool_cond_signal(pool) != 0) {
-                        error = thread_pool_lock_failure;
-                        break;
+                if (pool->started < pool->thread_count) {
+                        ctpool_cond_signal(&pool->notify);
                 }
         } while (0);
 
-        if (thread_pool_mutex_unlock(pool) != 0) {
-                return thread_pool_lock_failure;
-        }
+        ctpool_mutex_unlock(&pool->lock);
 
         return error;
 }
@@ -202,7 +126,7 @@ thread_pool_free(thread_pool_t **pool)
         }
 
         if ((*pool)->started > 0) {
-                thread_pool_mutex_unlock(*pool);
+                ctpool_mutex_unlock(&(*pool)->lock);
                 return thread_pool_unsafe_operation;
         }
 
@@ -214,8 +138,8 @@ thread_pool_free(thread_pool_t **pool)
                         task_queue_free(&(*pool)->queue);
                 }
 
-                pthread_mutex_destroy(&(*pool)->lock);
-                pthread_cond_destroy(&(*pool)->notify);
+                ctpool_mutex_destroy(&(*pool)->lock);
+                ctpool_cond_destroy(&(*pool)->notify);
         }
 
         free(*pool);
@@ -231,9 +155,7 @@ thread_pool_destroy(thread_pool_t **pool, int32_t flags)
                 return thread_pool_invalid;
         }
 
-        if (thread_pool_mutex_lock(*pool) != 0) {
-                return thread_pool_lock_failure;
-        }
+        ctpool_mutex_lock(&(*pool)->lock);
 
         int32_t error = 0;
 
@@ -246,14 +168,11 @@ thread_pool_destroy(thread_pool_t **pool, int32_t flags)
                 (*pool)->shutdown = (flags & thread_pool_graceful_shutdown) ?
                           graceful_shutdown : immediate_shutdown;
 
-                if ((thread_pool_cond_broadcast(*pool) != 0) ||
-                    (thread_pool_mutex_unlock(*pool) != 0)) {
-                        error = thread_pool_lock_failure;
-                        break;
-                }
+                ctpool_cond_broadcast(&(*pool)->notify);
+                ctpool_mutex_unlock(&(*pool)->lock);
 
                 for (int32_t i = 0; i < (*pool)->thread_count; ++i) {
-                        if (pthread_join((*pool)->threads[i], NULL) != 0) {
+                        if (ctpool_thread_join(&(*pool)->threads[i]) != 0) {
                                 error = thread_pool_thread_failure;
                         }
                 }
@@ -283,11 +202,11 @@ thread_pool_worker_fn(void *thread_pool)
         task_t *task;
 
         for (;;) {
-                thread_pool_mutex_lock(pool);
+                ctpool_mutex_lock(&pool->lock);
 
                 while ((pool->task_count == 0) && (!pool->shutdown)) {
                         pool->started -= 1;
-                        thread_pool_cond_wait(pool);
+                        ctpool_cond_wait(&pool->notify, &pool->lock);
                         pool->started += 1;
                 }
 
@@ -298,14 +217,14 @@ thread_pool_worker_fn(void *thread_pool)
                 task = task_queue_dequeue(pool->queue);
                 pool->task_count -= 1;
 
-                thread_pool_mutex_unlock(pool);
+                ctpool_mutex_unlock(&pool->lock);
 
                 task_execute(&task);
         }
 
         pool->started -= 1;
 
-        thread_pool_mutex_unlock(pool);
+        ctpool_mutex_unlock(&pool->lock);
 
         return NULL;
 }

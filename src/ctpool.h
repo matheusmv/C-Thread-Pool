@@ -5,6 +5,7 @@
 #include <pthread.h>
 
 #include "task_queue.h"
+#include "thread/thread.h"
 
 typedef enum thread_pool_error {
         thread_pool_invalid          = -1,
@@ -28,10 +29,10 @@ struct thread_pool {
         int32_t         task_count;    /* Number of tasks currently to be run             */
         int32_t         started;       /* Number of threads running                       */
         int32_t         thread_count;  /* Number of threads                               */
-        pthread_t       *threads;      /* Starting Pointer of Thread Array                */
-        task_queue_t    *queue;        /* Starting Pointer of Task Queue                  */
-        pthread_cond_t  notify;        /* Conditional variable                            */
-        pthread_mutex_t lock;          /* mutex                                           */
+        ctpool_cond_t   notify;        /* mutex                                           */ 
+        ctpool_mutex_t  lock;          /* Conditional variable                            */ 
+        ctpool_thread_t *threads;      /* Starting Pointer of Thread Array                */
+        task_queue_t    *queue;        /* Starting Pointer of Task Queue                  */         
 };
 
 thread_pool_t *thread_pool_create(int32_t thread_count);
